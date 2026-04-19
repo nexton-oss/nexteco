@@ -455,7 +455,7 @@ NextEco should remain:
 - small
 - sharp
 - auditable
-- boring in the best sense
+- boringly reliable
 - honest about uncertainty
 
 We prefer durable engineering assets over polished theater.

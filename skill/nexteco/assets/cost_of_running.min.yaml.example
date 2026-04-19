@@ -11,23 +11,23 @@ canonical_unit_of_work:
   notes: "Confirm the canonical unit of work with a human if the repository is ambiguous"
 
 deployment:
-  provider: "unknown"
-  instance_type: "unknown"
-  region: "unknown"
-  country: "unknown"
-  operating_system: "unknown"
+  provider: "unknown" # e.g., "aws", "gcp", "azure", "local"
+  instance_type: "unknown" # e.g., "t3.micro", "macbook_pro_m2"
+  region: "unknown" # e.g., "us-east-1", "eu-west-3"
+  country: "unknown" # e.g., "USA", "France", "Germany"
+  operating_system: "unknown" # e.g., "ubuntu_22.04", "macos_14"
 
 assumptions:
   electricity_price_usd_per_kwh:
-    value: null
+    value: null # e.g., 0.16 for USA, 0.28 for France. See: https://www.globalpetrolprices.com/electricity_prices/
     unit: "USD/kWh"
     status: "TODO"
-    notes: "Human input is usually required"
+    notes: "Human input is usually required. e.g., https://www.globalpetrolprices.com/electricity_prices/"
   grid_carbon_intensity_gco2e_per_kwh:
-    value: null
+    value: null # e.g., 380 for USA, 55 for France. See: https://app.electricitymaps.com/map
     unit: "gCO2e/kWh"
     status: "TODO"
-    notes: "Human input is usually required"
+    notes: "Human input is usually required. e.g., https://app.electricitymaps.com/map"
   average_power_draw_watts:
     value: null
     unit: "W"

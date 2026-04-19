@@ -354,6 +354,10 @@ When direct measurement is not available, the framework requires visible estimat
 That is not a weakness.  
 That is scientific hygiene.
 
+For deeper reference on carbon impact and computational energy methodologies, NextEco is aligned with the philosophies of:
+- https://calculator.green-algorithms.org
+- https://calculator.green-algorithms.org/ai
+
 ---
 
 ## Documentation map

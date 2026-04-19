@@ -12,26 +12,26 @@ canonical_unit_of_work:
     - "List excluded paths or services if relevant"
 
 deployment:
-  provider: "unknown"
-  instance_type: "unknown"
-  region: "unknown"
-  country: "unknown"
-  operating_system: "unknown"
-  hardware_notes: "TODO"
+  provider: "unknown" # e.g., "aws", "gcp", "azure", "local"
+  instance_type: "unknown" # e.g., "t3.micro", "macbook_pro_m2"
+  region: "unknown" # e.g., "us-east-1", "eu-west-3"
+  country: "unknown" # e.g., "USA", "France", "Germany"
+  operating_system: "unknown" # e.g., "ubuntu_22.04", "macos_14"
+  hardware_notes: "TODO" # e.g., "M2 chip, 16GB RAM"
 
 assumptions:
   electricity_price_usd_per_kwh:
-    value: null
+    value: null # e.g., 0.16 for USA, 0.28 for France. See: https://www.globalpetrolprices.com/electricity_prices/
     unit: "USD/kWh"
     status: "TODO"
-    source_url: "TODO"
+    source_url: "TODO" # e.g., "https://www.globalpetrolprices.com/electricity_prices/"
     retrieved_date: "YYYY-MM-DD"
     notes: "Usually requires human validation"
   grid_carbon_intensity_gco2e_per_kwh:
-    value: null
+    value: null # e.g., 380 for USA, 55 for France. See: https://app.electricitymaps.com/map
     unit: "gCO2e/kWh"
     status: "TODO"
-    source_url: "TODO"
+    source_url: "TODO" # e.g., "https://app.electricitymaps.com/map" or "https://ourworldindata.org/grapher/carbon-intensity-electricity"
     retrieved_date: "YYYY-MM-DD"
     notes: "Usually requires geography-aware validation"
   average_power_draw_watts:

@@ -1,3 +1,11 @@
+"""
+Data Model and Validation Layer.
+
+This module is responsible for loading, validating, and converting
+NextEco YAML cost models into standardized outputs such as human-readable
+Markdown reports.
+"""
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -13,30 +21,86 @@ ALLOWED_STATUSES = {"measured", "estimated", "placeholder", "TODO"}
 
 @dataclass
 class ValidationIssue:
+    """
+    Represents a discrete validation issue found within the cost model.
+
+    Attributes
+    ----------
+    level : str
+        Severity of the issue, standardly "error" or "warning".
+    message : str
+        Human-readable description of the constraint violation.
+    """
     level: str
     message: str
 
 
 @dataclass
 class ValidationResult:
+    """
+    Aggregator for issues found during a full validation pass.
+
+    Attributes
+    ----------
+    issues : list[ValidationIssue]
+        The collection of accumulated warnings and errors.
+    """
     issues: list[ValidationIssue] = field(default_factory=list)
 
     def add(self, level: str, message: str) -> None:
+        """
+        Append a new issue to the validation result.
+
+        Parameters
+        ----------
+        level : str
+            Severity level, e.g., "error" or "warning".
+        message : str
+            Descriptor string representing what rule was violated.
+        """
         self.issues.append(ValidationIssue(level=level, message=message))
 
     @property
     def errors(self) -> list[ValidationIssue]:
+        """list[ValidationIssue]: Filter and return only the hard errors."""
         return [issue for issue in self.issues if issue.level == "error"]
 
     @property
     def warnings(self) -> list[ValidationIssue]:
+        """list[ValidationIssue]: Filter and return only advisory warnings."""
         return [issue for issue in self.issues if issue.level == "warning"]
 
     def is_valid(self) -> bool:
+        """
+        Check if the model passed validation.
+
+        Returns
+        -------
+        bool
+            True if no errors are present, otherwise False.
+        """
         return not self.errors
 
 
 def load_yaml(path: str | Path) -> dict[str, Any]:
+    """
+    Safely load a YAML file from disk into a Python dictionary.
+
+    Parameters
+    ----------
+    path : str or pathlib.Path
+        The filesystem path targeting the YAML manifest to be read.
+
+    Returns
+    -------
+    dict[str, Any]
+        The parsed YAML dictionary.
+
+    Raises
+    ------
+    ValueError
+        If the primary top-level node in the YAML file is not a dictionary mapping.
+    """
     with open(path, "r", encoding="utf-8") as handle:
         data = yaml.safe_load(handle) or {}
     if not isinstance(data, dict):
@@ -45,15 +109,51 @@ def load_yaml(path: str | Path) -> dict[str, Any]:
 
 
 def write_text(path: str | Path, content: str) -> None:
+    """
+    Write a UTF-8 string to a specified file.
+
+    Parameters
+    ----------
+    path : str or pathlib.Path
+        The target location to output the content to.
+    content : str
+        The raw text data to be laid down on disk.
+    """
     with open(path, "w", encoding="utf-8") as handle:
         handle.write(content)
 
 
 def _is_number(value: Any) -> bool:
+    """
+    Determine if a given value is securely treated as a numeric scalar.
+
+    Parameters
+    ----------
+    value : Any
+        The parsed Python object to inspect.
+
+    Returns
+    -------
+    bool
+        True if the value is an int or float, but strictly not a boolean.
+    """
     return isinstance(value, (int, float)) and not isinstance(value, bool)
 
 
 def _status_of(obj: Any) -> str | None:
+    """
+    Extract the 'status' property carefully from an arbitrary mapping.
+
+    Parameters
+    ----------
+    obj : Any
+        The parsed dictionary item which may contain a 'status'.
+
+    Returns
+    -------
+    str | None
+        The status string if present, else None.
+    """
     if isinstance(obj, dict):
         status = obj.get("status")
         if status is None:
@@ -63,12 +163,38 @@ def _status_of(obj: Any) -> str | None:
 
 
 def _value_of(obj: Any) -> Any:
+    """
+    Extract the core 'value' scalar from an abstraction dictionary if necessary.
+
+    Parameters
+    ----------
+    obj : Any
+        The parsed dictionary wrapper containing a 'value', or the raw value itself.
+
+    Returns
+    -------
+    Any
+        The unwrapped intrinsic value.
+    """
     if isinstance(obj, dict) and "value" in obj:
         return obj.get("value")
     return obj
 
 
 def _stringify(value: Any) -> str:
+    """
+    Coerce a parsed object into a clean Markdown-friendly string representation.
+
+    Parameters
+    ----------
+    value : Any
+        The internal value to be converted.
+
+    Returns
+    -------
+    str
+        The formatted string representing the value, defaulting to '—' if empty.
+    """
     if value is None:
         return "—"
     if isinstance(value, float):
@@ -79,6 +205,21 @@ def _stringify(value: Any) -> str:
 
 
 def _format_value_status(obj: Any, *, fallback_unit: str | None = None) -> str:
+    """
+    Intelligently format a value string combining its quantity, unit, and verification status.
+
+    Parameters
+    ----------
+    obj : Any
+        The container bearing 'value', 'status', and potentially 'unit'.
+    fallback_unit : str, optional
+        Backup unit string to append if the object does not specify one natively.
+
+    Returns
+    -------
+    str
+        A concatenated display string, e.g., '140.5 W (measured)'.
+    """
     value = _value_of(obj)
     status = _status_of(obj)
     unit = obj.get("unit") if isinstance(obj, dict) else fallback_unit
@@ -91,10 +232,35 @@ def _format_value_status(obj: Any, *, fallback_unit: str | None = None) -> str:
 
 
 def _escape_md(value: Any) -> str:
+    """
+    Escape special reserved characters to render safely inside Markdown tables.
+
+    Parameters
+    ----------
+    value : Any
+        The raw object to be stringified and escaped.
+
+    Returns
+    -------
+    str
+        The robustly escaped string.
+    """
     return _stringify(value).replace("|", "\\|")
 
 
 def _check_status(result: ValidationResult, obj: Any, label: str) -> None:
+    """
+    Verify that an object possesses a strictly allowed verification status.
+
+    Parameters
+    ----------
+    result : ValidationResult
+        The context accumulator recording any found issues.
+    obj : Any
+        The dictionary container ostensibly holding a 'status'.
+    label : str
+        A breadcrumb key path to accurately log the location of the error.
+    """
     status = _status_of(obj)
     if status is None:
         result.add("warning", f"{label} is missing a status field.")
@@ -104,6 +270,19 @@ def _check_status(result: ValidationResult, obj: Any, label: str) -> None:
 
 
 def _check_date_string(value: str) -> bool:
+    """
+    Confirm that a string accurately adheres to the `YYYY-MM-DD` date format.
+
+    Parameters
+    ----------
+    value : str
+        The raw calendar string to evaluate.
+
+    Returns
+    -------
+    bool
+        True if the string can be parsed into a real calendar date, else False.
+    """
     try:
         datetime.strptime(value, "%Y-%m-%d")
         return True
@@ -112,6 +291,19 @@ def _check_date_string(value: str) -> bool:
 
 
 def _days_since(date_str: str) -> int | None:
+    """
+    Calculate the age in days between today and a supplied historical date string.
+
+    Parameters
+    ----------
+    date_str : str
+        The `YYYY-MM-DD` date string representing the benchmark date.
+
+    Returns
+    -------
+    int | None
+        The discrete number of days elapsed, or None if the date string is malformed.
+    """
     if not _check_date_string(date_str):
         return None
     then = datetime.strptime(date_str, "%Y-%m-%d").date()
@@ -119,8 +311,22 @@ def _days_since(date_str: str) -> int | None:
 
 
 def validate_cost_model(data: dict[str, Any]) -> ValidationResult:
+    """
+    Perform a complete semantic validation analysis on a parsed NextEco model.
+
+    Parameters
+    ----------
+    data : dict[str, Any]
+        The loaded YAML abstraction representing the cost of running footprint.
+
+    Returns
+    -------
+    ValidationResult
+        A container aggregating any errors and warnings found during inspection.
+    """
     result = ValidationResult()
 
+    # Verify that all mandatory top-level container fields exist
     for field_name in ["date_updated", "canonical_unit_of_work", "deployment"]:
         if field_name not in data:
             result.add("error", f"Missing required top-level field: {field_name}")
@@ -332,6 +538,19 @@ def validate_cost_model(data: dict[str, Any]) -> ValidationResult:
 
 
 def normalize_scenarios(data: dict[str, Any]) -> list[dict[str, Any]]:
+    """
+    Extract and normalize the scenario list uniformly, regardless of singular/plural keys.
+
+    Parameters
+    ----------
+    data : dict[str, Any]
+        The root document which may contain a 'scenario' object or a 'scenarios' list.
+
+    Returns
+    -------
+    list[dict[str, Any]]
+        A list of mapped scenarios, empty if none are correctly formatted.
+    """
     if "scenarios" in data and isinstance(data["scenarios"], list):
         return data["scenarios"]
     if "scenario" in data and isinstance(data["scenario"], dict):
@@ -367,6 +586,19 @@ def _append_structured_mapping(
 
 
 def render_markdown(data: dict[str, Any]) -> str:
+    """
+    Compile a validated NextEco YAML model into a rich Markdown report.
+
+    Parameters
+    ----------
+    data : dict[str, Any]
+        The parsed source model, ideally having already passed `validate_cost_model`.
+
+    Returns
+    -------
+    str
+        The fully stitched Markdown document string ready to be written to disk.
+    """
     scenarios = normalize_scenarios(data)
     lines: list[str] = []
     lines.append("# Cost of Running")

@@ -44,6 +44,9 @@ When the repository does not already have an established cost-of-running subsyst
 - YAML structure: [references/yaml-schema-guide.md](references/yaml-schema-guide.md)
 - Triggering guidance: [references/triggering-guide.md](references/triggering-guide.md)
 - Examples: [references/examples.md](references/examples.md)
+- External Methodology: 
+  - https://calculator.green-algorithms.org 
+  - https://calculator.green-algorithms.org/ai
 
 ## Scripts
 

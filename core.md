@@ -127,6 +127,10 @@ carbon_gco2e = energy_kwh × grid_carbon_intensity_gco2e_per_kwh
 Whenever possible, utilize the native `nexteco measure -- <command>` toolchain rather than manually invoking raw OS tools.
 Do not imply that `nexteco measure` or manual OS measurements were used unless the repository truly contains that evidence or you executed them and documented the outcome.
 
+For methodological reference and scientific derivation of carbon computations, refer to:
+- https://calculator.green-algorithms.org
+- https://calculator.green-algorithms.org/ai
+
 ---
 
 ## API pricing provenance

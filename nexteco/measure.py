@@ -1,3 +1,11 @@
+"""
+Power Measurement Profilers.
+
+This module provides an abstraction layer for measuring the energy and
+power footprint of external shell commands across different operating
+systems using native system utilities.
+"""
+
 import re
 import statistics
 import subprocess
@@ -10,6 +18,26 @@ from typing import List, Optional
 
 @dataclass
 class MeasurementResult:
+    """
+    Structured outcome of a power consumption measurement run.
+
+    Attributes
+    ----------
+    command : str
+        The literal command that was executed.
+    duration_seconds : float
+        Elapsed wall-clock time in seconds.
+    average_power_watts : float, optional
+        The measured average active power consumption in Watts.
+    energy_joules : float, optional
+        The deduced total energy consumption in Joules.
+    samples_collected : int
+        Number of power samples aggregated during the run.
+    os_tool : str
+        The underlying OS native tool used for profiling.
+    warnings : List[str]
+        Advisory warnings generated during the measurement lifecycle.
+    """
     command: str
     duration_seconds: float
     average_power_watts: Optional[float]
@@ -18,7 +46,15 @@ class MeasurementResult:
     os_tool: str
     warnings: List[str]
 
-    def to_dict(self):
+    def to_dict(self) -> dict:
+        """
+        Serialize the measurement outcome to a standard Python dictionary.
+
+        Returns
+        -------
+        dict
+            Dictionary representation of the measurement data.
+        """
         return {
             "command": self.command,
             "duration_seconds": round(self.duration_seconds, 3),
@@ -35,16 +71,41 @@ class MeasurementResult:
 
 
 class BaseProfiler:
+    """
+    Abstract base class defining the contract for OS-specific power profilers.
+
+    Attributes
+    ----------
+    samples_watts : list[float]
+        Accumulated raw power readings.
+    process : subprocess.Popen, optional
+        The active subprocess running the target tool.
+    running : bool
+        Indicates whether the profiler is currently actively sampling.
+    warnings : list[str]
+        Collected irregularities or system limitations.
+    """
     def __init__(self):
         self.samples_watts: List[float] = []
         self.process: Optional[subprocess.Popen] = None
         self.running = False
         self.warnings: List[str] = []
 
-    def start(self):
+    def start(self) -> None:
+        """
+        Initialize and begin the measurement subprocess.
+
+        Raises
+        ------
+        NotImplementedError
+            If invoked on the abstract base class.
+        """
         raise NotImplementedError
 
-    def stop(self):
+    def stop(self) -> None:
+        """
+        Terminate the background sampling subprocess cleanly.
+        """
         self.running = False
         if self.process:
             self.process.terminate()
@@ -60,7 +121,10 @@ class BaseProfiler:
 
 
 class MacOSProfiler(BaseProfiler):
-    def start(self):
+    """
+    macOS specific power profiler using the native `powermetrics` utility.
+    """
+    def start(self) -> None:
         self.running = True
         cmd = ["sudo", "powermetrics", "--samplers", "cpu_power", "-i", "1000"]
         try:
@@ -75,7 +139,10 @@ class MacOSProfiler(BaseProfiler):
         except FileNotFoundError:
             self.warnings.append("sudo or powermetrics not found.")
 
-    def _read_output(self):
+    def _read_output(self) -> None:
+        """
+        Internal worker to consume the stdout stream of the `powermetrics` process.
+        """
         if not self.process or not self.process.stdout:
             return
 
@@ -101,7 +168,10 @@ class MacOSProfiler(BaseProfiler):
 
 
 class LinuxProfiler(BaseProfiler):
-    def start(self):
+    """
+    Linux specific power profiler using the native `turbostat` utility.
+    """
+    def start(self) -> None:
         self.running = True
         # Try turbostat first
         cmd = ["sudo", "turbostat", "--quiet", "--show", "PkgWatt", "--interval", "1"]
@@ -120,7 +190,10 @@ class LinuxProfiler(BaseProfiler):
             )
             # Fallback to powertop could be implemented here
 
-    def _read_turbostat(self):
+    def _read_turbostat(self) -> None:
+        """
+        Internal worker to consume the stdout stream of the `turbostat` process.
+        """
         if not self.process or not self.process.stdout:
             return
 
@@ -138,7 +211,10 @@ class LinuxProfiler(BaseProfiler):
 
 
 class WindowsProfiler(BaseProfiler):
-    def start(self):
+    """
+    Windows specific power profiler fallback.
+    """
+    def start(self) -> None:
         self.running = True
         # Windows powercfg/perfmon realtime metrics are highly hardware dependent.
         # This provides a scaffold using typeperf to measure Total Processor Power if available,
@@ -150,6 +226,14 @@ class WindowsProfiler(BaseProfiler):
 
 
 def get_profiler() -> BaseProfiler:
+    """
+    Factory function to instantiate the correct profiler for the current operating system.
+
+    Returns
+    -------
+    BaseProfiler
+        An instance of an OS-specific subclass of BaseProfiler.
+    """
     if sys.platform == "darwin":
         return MacOSProfiler()
     elif sys.platform == "linux":
@@ -161,6 +245,19 @@ def get_profiler() -> BaseProfiler:
 
 
 def measure_command(cmd_args: List[str]) -> MeasurementResult:
+    """
+    Execute a target shell command while simultaneously profiling its power consumption.
+
+    Parameters
+    ----------
+    cmd_args : list[str]
+        The command and arguments to aggressively profile.
+
+    Returns
+    -------
+    MeasurementResult
+        The deduced power and duration metrics wrapped into a result context.
+    """
     profiler = get_profiler()
 
     # 1. Start the profiler (this may prompt for sudo)

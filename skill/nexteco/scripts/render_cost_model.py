@@ -1,16 +1,52 @@
 #!/usr/bin/env python3
+"""
+NextEco Skill Render Utility.
+
+A standalone fallback rendering tool capable of rendering a rudimentary Markdown
+summary footprint directly inside the skill boundary logic loop.
+"""
 from __future__ import annotations
 
 import argparse
 from pathlib import Path
 import yaml
+import logging
+
+logging.basicConfig(level=logging.INFO, format="%(message)s")
+logger = logging.getLogger(__name__)
 
 
 def load_yaml(path: Path) -> dict:
+    """
+    Ingest a YAML file payload into a pure dictionary mapping format.
+
+    Parameters
+    ----------
+    path : pathlib.Path
+        The filesystem entry point.
+
+    Returns
+    -------
+    dict
+        Parsed context representing the YAML schema model.
+    """
     return yaml.safe_load(path.read_text(encoding='utf-8')) or {}
 
 
 def render(data: dict) -> str:
+    """
+    Transpile a simplistic Markdown textual summary directly from the loaded model dataset.
+
+    Parameters
+    ----------
+    data : dict
+        A pre-loaded YAML model structure.
+
+    Returns
+    -------
+    str
+        Flattened Markdown syntax outlining the footprint summary block.
+    """
     cuow = data.get('canonical_unit_of_work', {})
     lines = ['# Cost of Running', '', '## Canonical unit of work', '']
     lines.append(f"- Name: **{cuow.get('name', 'unknown')}**")
@@ -24,13 +60,21 @@ def render(data: dict) -> str:
 
 
 def main() -> int:
+    """
+    Main hook invoking purely localized cost-model visualization rendering workflows.
+
+    Returns
+    -------
+    int
+        Always returns 0 upon successful execution pipeline completion.
+    """
     parser = argparse.ArgumentParser(description='Render Markdown from a NextEco YAML model')
     parser.add_argument('input', nargs='?', default='cost_of_running.yaml')
     parser.add_argument('--output', default='cost_of_running.md')
     args = parser.parse_args()
     content = render(load_yaml(Path(args.input)))
     Path(args.output).write_text(content, encoding='utf-8')
-    print(f'Rendered {args.output}')
+    logger.info(f'Rendered {args.output}')
     return 0
 
 

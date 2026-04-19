@@ -138,6 +138,10 @@ Do not claim those measurements happened unless you actually ran `nexteco measur
 
 When direct energy measurement is unavailable, use explicit estimated formulas and explain the assumption path.
 
+For methodology reference and scientific derivation of carbon computations, refer to:
+- https://calculator.green-algorithms.org
+- https://calculator.green-algorithms.org/ai
+
 ---
 
 ## Preferred advanced implementation

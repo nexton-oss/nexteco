@@ -1,0 +1,76 @@
+# =======================================================================
+# NextEco — minimal example
+# =======================================================================
+
+date_updated: "YYYY-MM-DD"
+
+canonical_unit_of_work:
+  name: "one run of the primary task"
+  description: "Replace with the single most representative unit of work"
+  status: "TODO"
+  notes: "Confirm the canonical unit of work with a human if the repository is ambiguous"
+
+deployment:
+  provider: "unknown"
+  instance_type: "unknown"
+  region: "unknown"
+  country: "unknown"
+  operating_system: "unknown"
+
+assumptions:
+  electricity_price_usd_per_kwh:
+    value: null
+    unit: "USD/kWh"
+    status: "TODO"
+    notes: "Human input is usually required"
+  grid_carbon_intensity_gco2e_per_kwh:
+    value: null
+    unit: "gCO2e/kWh"
+    status: "TODO"
+    notes: "Human input is usually required"
+  average_power_draw_watts:
+    value: null
+    unit: "W"
+    status: "TODO"
+    notes: "Can later become measured or estimated"
+
+scenario:
+  name: "default"
+  description: "Single baseline scenario"
+  runtime_seconds:
+    value: null
+    status: "TODO"
+  local_compute:
+    energy_kwh:
+      value: null
+      status: "TODO"
+    electricity_cost_usd:
+      value: null
+      status: "TODO"
+    carbon_gco2e:
+      value: null
+      status: "TODO"
+  external_api_cost_usd:
+    value: 0.0
+    status: "placeholder"
+    notes: "Set non-zero only when paid APIs are part of the canonical unit of work"
+  totals:
+    total_cost_usd:
+      value: null
+      status: "TODO"
+    total_carbon_gco2e:
+      value: null
+      status: "TODO"
+
+exclusions:
+  - "Storage is excluded unless materially relevant"
+  - "Network egress is excluded unless materially relevant"
+
+output_expectations:
+  generated_files:
+    - "cost_of_running.yaml"
+    - "cost_of_running.md"
+  notes:
+    - "The YAML is the source of truth"
+    - "The Markdown report should be generated from the YAML"
+    - "Tests should verify formulas and synchronization when possible"

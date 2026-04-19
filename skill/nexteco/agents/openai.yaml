@@ -1,0 +1,5 @@
+interface:
+  display_name: NextEco
+  short_description: Repository-native cost-of-running workflow
+  icon: assets/logo.txt
+  brand_color: '#0f172a'

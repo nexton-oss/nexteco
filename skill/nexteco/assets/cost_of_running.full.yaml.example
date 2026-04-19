@@ -1,0 +1,105 @@
+# =======================================================================
+# NextEco — full example
+# =======================================================================
+
+date_updated: "YYYY-MM-DD"
+
+canonical_unit_of_work:
+  name: "TODO"
+  description: "Describe the single primary unit of work"
+  status: "TODO"
+  out_of_scope:
+    - "List excluded paths or services if relevant"
+
+deployment:
+  provider: "unknown"
+  instance_type: "unknown"
+  region: "unknown"
+  country: "unknown"
+  operating_system: "unknown"
+  hardware_notes: "TODO"
+
+assumptions:
+  electricity_price_usd_per_kwh:
+    value: null
+    unit: "USD/kWh"
+    status: "TODO"
+    source_url: "TODO"
+    retrieved_date: "YYYY-MM-DD"
+    notes: "Usually requires human validation"
+  grid_carbon_intensity_gco2e_per_kwh:
+    value: null
+    unit: "gCO2e/kWh"
+    status: "TODO"
+    source_url: "TODO"
+    retrieved_date: "YYYY-MM-DD"
+    notes: "Usually requires geography-aware validation"
+  average_power_draw_watts:
+    value: null
+    unit: "W"
+    status: "TODO"
+    notes: "May come from sudo powermetrics (macOS), sudo powertop/turbostat (Linux), perfmon (Windows Admin), or a justified estimate"
+
+pricing:
+  external_apis:
+    - name: "example-api"
+      price_per_unit:
+        value: null
+        unit: "USD per unit"
+        status: "TODO"
+        source_url: "TODO"
+        retrieved_date: "YYYY-MM-DD"
+      usage_per_canonical_unit:
+        value: null
+        unit: "units"
+        status: "TODO"
+      subtotal_usd:
+        value: null
+        status: "TODO"
+
+scenarios:
+  - name: "default"
+    description: "Representative baseline scenario"
+    runtime_seconds:
+      value: null
+      status: "TODO"
+    local_compute:
+      energy_kwh:
+        value: null
+        status: "TODO"
+      electricity_cost_usd:
+        value: null
+        status: "TODO"
+      carbon_gco2e:
+        value: null
+        status: "TODO"
+    external_api_cost_usd:
+      value: null
+      status: "TODO"
+    totals:
+      total_cost_usd:
+        value: null
+        status: "TODO"
+      total_carbon_gco2e:
+        value: null
+        status: "TODO"
+
+exclusions:
+  - "Storage is excluded unless materially relevant"
+  - "Network egress is excluded unless materially relevant"
+
+provenance_rules:
+  - "Any API price must include source_url and retrieved_date"
+  - "If pricing freshness is unclear, downgrade to placeholder or TODO"
+  - "Never present estimated values as measured values"
+
+output_expectations:
+  generated_files:
+    - "cost_of_running.yaml"
+    - "cost_of_running.md"
+  validation:
+    - "tests for arithmetic coherence"
+    - "tests for synchronization between YAML and Markdown"
+    - "benchmark targeting the canonical unit of work"
+  notes:
+    - "Use the full template when the cost model should survive over time"
